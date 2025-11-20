@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ session.get('language', 'en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}CodeInsight{% endblock %}</title>
+    <title>{% block title %}{{ _('app.name') }}{% endblock %}</title>
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -201,14 +201,20 @@
                 CodeInsight
             </a>
             <ul class="nav-links">
-                <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                <li><a href="{{ url_for('main.index') }}">{{ _('navigation.home') }}</a></li>
                 {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-                    <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+                    <li><a href="{{ url_for('main.dashboard') }}">{{ _('navigation.dashboard') }}</a></li>
+                    <li><a href="{{ url_for('auth.logout') }}">{{ _('navigation.logout') }}</a></li>
                 {% else %}
-                    <li><a href="{{ url_for('main.login') }}" class="btn">Login</a></li>
+                    <li><a href="{{ url_for('main.login') }}" class="btn">{{ _('navigation.login') }}</a></li>
                 {% endif %}
+
             </ul>
+            <!-- Language switcher -->
+                <select onchange="changeLanguage(this.value)">
+                    <option value="en" {% if session.get('language', 'en') == 'en' %}selected{% endif %}>English</option>
+                    <option value="ar" {% if session.get('language', 'en') == 'ar' %}selected{% endif %}>العربية</option>
+                </select>
         </nav>
     </header>
 
@@ -243,5 +249,16 @@
     </footer>
 
     {% block extra_js %}{% endblock %}
+        <script>
+    function changeLanguage(lang) {
+        fetch(`/change-language/${lang}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+    }
+    </script>
 </body>
 </html>

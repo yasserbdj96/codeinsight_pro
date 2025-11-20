@@ -1,0 +1,59 @@
+{
+  "app": {
+    "name": "كود إنسايت",
+    "description": "رفيقك في تحليل الكود"
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "dashboard": "لوحة التحكم",
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "profile": "الملف الشخصي"
+  },
+  "auth": {
+    "welcome": "مرحباً بك في كود إنسايت",
+    "login_with_github": "تسجيل الدخول عبر GitHub",
+    "login_with_gitlab": "تسجيل الدخول عبر GitLab",
+    "logout_success": "مع السلامة! تم تسجيل خروجك بنجاح.",
+    "github_linked": "تم ربط حساب GitHub بنجاح!",
+    "gitlab_linked": "تم ربط حساب GitLab بنجاح!",
+    "github_disconnected": "تم فصل حساب GitHub بنجاح",
+    "gitlab_disconnected": "تم فصل حساب GitLab بنجاح",
+    "already_linked": "حسابك مرتبط بالفعل بـ {provider}",
+    "account_linked_elsewhere": "حساب {provider} هذا مرتبط بالفعل بمستخدم آخر",
+    "need_one_account": "لا يمكن فصل {provider} - تحتاج إلى حساب واحد على الأقل متصل",
+    "no_account_linked": "لا يوجد حساب {provider} مرتبط",
+    "welcome_back": "مرحباً بعودتك، {username}!",
+    "welcome_new": "مرحباً بك في كود إنسايت، {username}!"
+  },
+  "errors": {
+    "oauth_not_configured": "{provider} OAuth غير مهيأ. يرجى تعيين {provider}_CLIENT_ID و {provider}_CLIENT_SECRET في متغيرات البيئة.",
+    "authentication_failed": "فشل المصادقة. يرجى المحاولة مرة أخرى.",
+    "network_error": "خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
+    "invalid_state": "معلمة state غير صالحة. يرجى المحاولة مرة أخرى.",
+    "authorization_failed": "فشل التفويض: لم يتم استلام رمز",
+    "security_verification": "فشل التحقق الأمني. يرجى المحاولة مرة أخرى."
+  },
+  "email": {
+    "welcome_subject": "مرحباً بك في كود إنسايت",
+    "welcome_content": "مرحباً {username}، أهلاً بك في كود إنسايت!",
+    "account_linked_subject": "✅ تم ربط حساب {provider}",
+    "account_linked_content": "مرحباً {username}، تم ربط حساب {provider} الخاص بك بنجاح!",
+    "login_subject": "✅ تسجيل دخول جديد",
+    "login_content": "مرحباً بعودتك، {username}"
+  },
+  "user": {
+    "premium": "مميز",
+    "free": "مجاني",
+    "admin": "مدير",
+    "verified": "موثق"
+  },
+  "buttons": {
+    "connect": "ربط",
+    "disconnect": "فصل",
+    "refresh": "تحديث",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "continue": "متابعة"
+  }
+}

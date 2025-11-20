@@ -28,7 +28,8 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True, 
         'pool_recycle': 300, 
-        'connect_args': {'timeout': 30, 'check_same_thread': False}
+        'connect_args': {'timeout': 30, 'check_same_thread': False},
+        'future': True  # Enable 2.0 style
     }
 
     # Background task scheduling

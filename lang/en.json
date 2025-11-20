@@ -1,0 +1,59 @@
+{
+  "app": {
+    "name": "CodeInsight",
+    "description": "Your code analysis companion"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "login": "Login",
+    "logout": "Logout",
+    "profile": "Profile"
+  },
+  "auth": {
+    "welcome": "Welcome to CodeInsight",
+    "login_with_github": "Login with GitHub",
+    "login_with_gitlab": "Login with GitLab",
+    "logout_success": "Goodbye! You have been logged out successfully.",
+    "github_linked": "GitHub account linked successfully!",
+    "gitlab_linked": "GitLab account linked successfully!",
+    "github_disconnected": "GitHub account disconnected successfully",
+    "gitlab_disconnected": "GitLab account disconnected successfully",
+    "already_linked": "Your account is already linked to {provider}",
+    "account_linked_elsewhere": "This {provider} account is already linked to another user",
+    "need_one_account": "Cannot disconnect {provider} - you need at least one connected account",
+    "no_account_linked": "No {provider} account is linked",
+    "welcome_back": "Welcome back, {username}!",
+    "welcome_new": "Welcome to CodeInsight, {username}!"
+  },
+  "errors": {
+    "oauth_not_configured": "{provider} OAuth is not configured. Please set {provider}_CLIENT_ID and {provider}_CLIENT_SECRET environment variables.",
+    "authentication_failed": "Authentication failed. Please try again.",
+    "network_error": "Network error. Please try again.",
+    "invalid_state": "Invalid state parameter. Please try again.",
+    "authorization_failed": "Authorization failed: No code received",
+    "security_verification": "Security verification failed. Please try again."
+  },
+  "email": {
+    "welcome_subject": "Welcome to CodeInsight",
+    "welcome_content": "Hello {username}, welcome to CodeInsight!",
+    "account_linked_subject": "✅ {provider} Account Linked",
+    "account_linked_content": "Hello {username}, your {provider} account has been successfully linked!",
+    "login_subject": "✅ New Login",
+    "login_content": "Welcome back, {username}"
+  },
+  "user": {
+    "premium": "Premium",
+    "free": "Free",
+    "admin": "Administrator",
+    "verified": "Verified"
+  },
+  "buttons": {
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "refresh": "Refresh",
+    "save": "Save",
+    "cancel": "Cancel",
+    "continue": "Continue"
+  }
+}
