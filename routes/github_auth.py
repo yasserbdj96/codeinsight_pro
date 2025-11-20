@@ -1,10 +1,11 @@
-# routes/auth.py
+# routes/github_auth.py
 from flask import Blueprint, redirect, request, url_for, flash, session
 from flask_login import login_user, current_user, logout_user, login_required
 import requests
 from models import db, User
 from config import config
 from utils.email_sender import email_sender
+import secrets
 
 github_auth_bp = Blueprint('auth', __name__)
 
@@ -17,12 +18,18 @@ GITHUB_EMAIL_URL = 'https://api.github.com/user/emails'
 @github_auth_bp.route('/auth/github')
 def github_login():
     """Redirect user to GitHub for authorization"""
-    if current_user.is_authenticated:
+    # Check if GitHub credentials are configured
+    if not config.GITHUB_CLIENT_ID or not config.GITHUB_CLIENT_SECRET:
+        flash('GitHub OAuth is not configured. Please set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET environment variables.', 'error')
+        return redirect(url_for('main.login'))
+    
+    # If already authenticated and not linking, redirect to dashboard
+    if current_user.is_authenticated and not request.args.get('link'):
         return redirect(url_for('main.dashboard'))
     
-    import secrets
-    state = secrets.token_urlsafe(16)
+    state = secrets.token_urlsafe(32)
     session['oauth_state'] = state
+    session['oauth_action'] = 'link' if request.args.get('link') else 'login'
     
     # Build the authorization URL
     params = {
@@ -33,24 +40,20 @@ def github_login():
         'allow_signup': 'true'
     }
     
-    # Create proper URL with encoded parameters
     from urllib.parse import urlencode
     auth_url = f"{GITHUB_AUTH_URL}?{urlencode(params)}"
     
-    print(f"🔗 Redirecting to GitHub OAuth:")
-    print(f"   Client ID: {config.GITHUB_CLIENT_ID}")
+    print(f"🔗 Redirecting to GitHub OAuth")
+    print(f"   Client ID: {config.GITHUB_CLIENT_ID[:10]}...")
     print(f"   Redirect URI: {config.GITHUB_REDIRECT_URI}")
-    print(f"   Full URL: {auth_url}")
     
     return redirect(auth_url)
 
-# Main callback route (standard route)
 @github_auth_bp.route('/auth/github/callback')
 def github_callback():
-    """Handle GitHub OAuth callback - standard route"""
+    """Handle GitHub OAuth callback"""
     return _handle_github_callback()
 
-# Alternate callback route (if GitHub is configured with /callback/github)
 @github_auth_bp.route('/callback/github')
 def github_callback_alternate():
     """Handle GitHub OAuth callback - alternate route"""
@@ -59,8 +62,6 @@ def github_callback_alternate():
 def _handle_github_callback():
     """Common handler for GitHub OAuth callback"""
     print("📥 GitHub callback received!")
-    print(f"   Request args: {request.args}")
-    print(f"   Request path: {request.path}")
     
     # Check for errors from GitHub
     error = request.args.get('error')
@@ -70,12 +71,13 @@ def _handle_github_callback():
         flash(f'GitHub authentication failed: {error_description}', 'error')
         return redirect(url_for('main.login'))
     
-    # Verify state parameter to prevent CSRF
+    # Verify state parameter
     state = request.args.get('state')
     stored_state = session.pop('oauth_state', None)
+    oauth_action = session.pop('oauth_action', 'login')
     
     if not state or state != stored_state:
-        print(f"❌ State mismatch: received={state}, stored={stored_state}")
+        print(f"❌ State mismatch")
         flash('Invalid state parameter. Please try again.', 'error')
         return redirect(url_for('main.login'))
     
@@ -97,11 +99,10 @@ def _handle_github_callback():
         }
         headers = {'Accept': 'application/json'}
         
-        token_response = requests.post(GITHUB_TOKEN_URL, data=token_data, headers=headers)
+        token_response = requests.post(GITHUB_TOKEN_URL, data=token_data, headers=headers, timeout=10)
         
         if token_response.status_code != 200:
-            print(f"❌ Token exchange failed with status {token_response.status_code}")
-            print(f"   Response: {token_response.text}")
+            print(f"❌ Token exchange failed: {token_response.status_code}")
             flash('Failed to authenticate with GitHub', 'error')
             return redirect(url_for('main.login'))
         
@@ -109,7 +110,6 @@ def _handle_github_callback():
         access_token = token_json.get('access_token')
         
         if not access_token:
-            print(f"❌ No access token in response: {token_json}")
             error_msg = token_json.get('error_description', 'Failed to get access token')
             flash(f'Authentication failed: {error_msg}', 'error')
             return redirect(url_for('main.login'))
@@ -117,16 +117,14 @@ def _handle_github_callback():
         print("✅ Access token received")
         
         # Get user info from GitHub
-        print("👤 Fetching user information...")
         user_headers = {
             'Authorization': f'Bearer {access_token}',
             'Accept': 'application/vnd.github.v3+json'
         }
         
-        user_response = requests.get(GITHUB_USER_URL, headers=user_headers)
+        user_response = requests.get(GITHUB_USER_URL, headers=user_headers, timeout=10)
         
         if user_response.status_code != 200:
-            print(f"❌ Failed to fetch user info: {user_response.status_code}")
             flash('Failed to get user information from GitHub', 'error')
             return redirect(url_for('main.login'))
         
@@ -136,93 +134,147 @@ def _handle_github_callback():
         # Get user email if not public
         email = user_data.get('email')
         if not email:
-            print("📧 Fetching user email...")
-            email_response = requests.get(GITHUB_EMAIL_URL, headers=user_headers)
+            email_response = requests.get(GITHUB_EMAIL_URL, headers=user_headers, timeout=10)
             if email_response.status_code == 200:
                 emails = email_response.json()
-                # Get primary verified email
                 for email_data in emails:
                     if email_data.get('primary') and email_data.get('verified'):
                         email = email_data.get('email')
                         break
-                # If no primary, get first verified
                 if not email:
                     for email_data in emails:
                         if email_data.get('verified'):
                             email = email_data.get('email')
                             break
         
-        # Find or create user
         github_id = str(user_data['id'])
+        
+        # Handle linking to existing account
+        if oauth_action == 'link' and current_user.is_authenticated:
+            if current_user.github_id:
+                flash('Your account is already linked to GitHub', 'warning')
+                return redirect(url_for('main.dashboard'))
+            
+            # Check if this GitHub account is already linked to another user
+            existing_github_user = User.query.filter_by(github_id=github_id).first()
+            if existing_github_user:
+                flash('This GitHub account is already linked to another user', 'error')
+                return redirect(url_for('main.dashboard'))
+            
+            # Link GitHub to current user
+            current_user.github_id = github_id
+            current_user.github_token = access_token
+            if not current_user.avatar_url:
+                current_user.avatar_url = user_data.get('avatar_url')
+                current_user.avatar_source = 'github'
+            db.session.commit()
+            
+            flash('GitHub account linked successfully!', 'success')
+            if current_user.email:
+                email_sender.send_email(
+                    to_email=current_user.email,
+                    subject='✅ GitHub Account Linked',
+                    html_content=f"Hello {current_user.username}, your GitHub account has been successfully linked!"
+                )
+            return redirect(url_for('main.dashboard'))
+        
+        # Find user by GitHub ID
         user = User.query.filter_by(github_id=github_id).first()
         
         if not user:
-            # Check if username or email already exists
-            existing_user = User.query.filter(
-                (User.username == user_data['login']) | 
-                (User.email == email if email else False)
-            ).first()
+            # Create unique username
+            base_username = user_data['login']
+            username = base_username
+            counter = 1
             
-            if existing_user:
-                # Link existing account with GitHub
-                print(f"🔗 Linking existing user {existing_user.username} with GitHub")
-                existing_user.github_id = github_id
-                existing_user.github_token = access_token
-                existing_user.avatar_url = user_data.get('avatar_url')
-                existing_user.bio = user_data.get('bio')
-                db.session.commit()
-                user = existing_user
-            else:
-                # Create new user
-                print(f"✨ Creating new user: {user_data['login']}")
-                user = User(
-                    username=user_data['login'],
-                    email=email,
-                    github_id=github_id,
-                    github_token=access_token,
-                    avatar_url=user_data.get('avatar_url'),
-                    bio=user_data.get('bio'),
-                    avatar_source='github'
+            while User.query.filter_by(username=username).first():
+                username = f"{base_username}_gh{counter}"
+                counter += 1
+            
+            # Create new user
+            print(f"✨ Creating new user: {username}")
+            user = User(
+                username=username,
+                email=email,
+                github_id=github_id,
+                github_token=access_token,
+                avatar_url=user_data.get('avatar_url'),
+                bio=user_data.get('bio'),
+                avatar_source='github'
+            )
+            
+            db.session.add(user)
+            db.session.commit()
+            
+            if user.email:
+                email_sender.send_email(
+                    to_email=user.email,
+                    subject='✅ Welcome to CodeInsight',
+                    html_content=f"Hello {user.username}, welcome to CodeInsight!"
                 )
-                if user.email:
-                    # Send welcome email when user signs up
-                    email_sender.send_email(to_email=user.email, subject='✅ Created new user', html_content=f"hello {user.username}, welcome to CodeInsight!", text_content=None)
-
-                db.session.add(user)
-                db.session.commit()
-                print(f"✅ Created new user with ID: {user.id}")
+            
+            print(f"✅ Created new user with ID: {user.id}")
         else:
             # Update existing user
             print(f"🔄 Updating existing user: {user.username}")
             user.github_token = access_token
-            user.avatar_url = user_data.get('avatar_url')
-            user.bio = user_data.get('bio')
-            if email and not user.email:
+            if user.avatar_source == 'github':
+                user.avatar_url = user_data.get('avatar_url')
+            if not user.email and email:
                 user.email = email
             db.session.commit()
-            print(f"✅ User updated successfully")
         
         # Log the user in
         login_user(user, remember=True)
         print(f"🎉 User {user.username} logged in successfully")
         flash(f'Welcome back, {user.username}!', 'success')
-        if user.email:
-                    # Send welcome email when user signs up
-                    email_sender.send_email(to_email=user.email, subject='✅ New login', html_content=f"Welcome back, {user.username}", text_content=None)
         
+        if user.email:
+            email_sender.send_email(
+                to_email=user.email,
+                subject='✅ New Login',
+                html_content=f"Welcome back, {user.username}"
+            )
         
         return redirect(url_for('main.dashboard'))
         
     except requests.exceptions.RequestException as e:
-        print(f"❌ Network error during GitHub OAuth: {str(e)}")
+        print(f"❌ Network error: {str(e)}")
         flash('Network error. Please try again.', 'error')
         return redirect(url_for('main.login'))
     except Exception as e:
-        print(f"❌ Unexpected error during GitHub OAuth: {str(e)}")
+        print(f"❌ Error: {str(e)}")
         import traceback
         traceback.print_exc()
-        flash(f'Authentication failed. Please try again.', 'error')
+        flash('Authentication failed. Please try again.', 'error')
         return redirect(url_for('main.login'))
+
+@github_auth_bp.route('/auth/github/disconnect')
+@login_required
+def disconnect_github():
+    """Disconnect GitHub account"""
+    if not current_user.github_id:
+        flash('No GitHub account is linked', 'warning')
+        return redirect(url_for('main.dashboard'))
+    
+    # Check if user has at least one OAuth provider
+    if not current_user.gitlab_id:
+        flash('Cannot disconnect GitHub - you need at least one connected account', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    current_user.github_id = None
+    current_user.github_token = None
+    
+    if current_user.avatar_source == 'github':
+        if current_user.gitlab_id:
+            current_user.avatar_source = 'gitlab'
+        else:
+            current_user.avatar_url = None
+            current_user.avatar_source = None
+    
+    db.session.commit()
+    flash('GitHub account disconnected successfully', 'success')
+    return redirect(url_for('main.dashboard'))
 
 @github_auth_bp.route('/logout')
 @login_required

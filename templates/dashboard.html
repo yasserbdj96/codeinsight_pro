@@ -1,9 +1,365 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard - CodeInsight{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .dashboard-header {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        padding: 2rem;
+        background: var(--surface);
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .user-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--primary-color);
+    }
+
+    .user-info h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .user-info p {
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .badge.premium {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .card {
+        background: var(--surface);
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .card h2 i {
+        color: var(--primary-color);
+    }
+
+    .account-status {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .provider-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: var(--background);
+        border-radius: 12px;
+        border: 2px solid var(--border);
+    }
+
+    .provider-item.connected {
+        border-color: var(--success);
+        background: #f0fdf4;
+    }
+
+    .provider-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .provider-info i {
+        font-size: 2rem;
+    }
+
+    .provider-info i.fa-github {
+        color: #24292e;
+    }
+
+    .provider-info i.fa-gitlab {
+        color: #fc6d26;
+    }
+
+    .provider-details h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.25rem;
+        color: var(--text-primary);
+    }
+
+    .provider-details p {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .status-badge.connected {
+        background: var(--success);
+        color: white;
+    }
+
+    .status-badge.disconnected {
+        background: var(--border);
+        color: var(--text-secondary);
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1.25rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+    .btn-danger {
+        background: var(--error);
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: var(--border);
+        color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+        background: var(--text-secondary);
+        color: white;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .provider-item {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .action-buttons {
+            width: 100%;
+        }
+
+        .btn {
+            flex: 1;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
+<div class="dashboard-container">
+    <!-- User Header -->
+    <div class="dashboard-header">
+        {% if current_user.avatar_url %}
+        <img src="{{ current_user.avatar_url }}" alt="{{ current_user.username }}" class="user-avatar">
+        {% else %}
+        <div class="user-avatar" style="background: var(--primary-color); display: flex; align-items: center; justify-content: center; color: white; font-size: 2.5rem; font-weight: 700;">
+            {{ current_user.username[0].upper() }}
+        </div>
+        {% endif %}
+        
+        <div class="user-info">
+            <h1>{{ current_user.username }}</h1>
+            {% if current_user.email %}
+            <p><i class="fas fa-envelope"></i> {{ current_user.email }}</p>
+            {% endif %}
+            {% if current_user.bio %}
+            <p><i class="fas fa-info-circle"></i> {{ current_user.bio }}</p>
+            {% endif %}
+            <div>
+                {% if current_user.is_premium %}
+                <span class="badge premium"><i class="fas fa-crown"></i> Premium</span>
+                {% endif %}
+                {% if current_user.is_verified %}
+                <span class="badge"><i class="fas fa-check-circle"></i> Verified</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
-<h1>dashboard</h1>
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Connected Accounts -->
+        <div class="card">
+            <h2><i class="fas fa-link"></i> Connected Accounts</h2>
+            
+            <div class="account-status">
+                <!-- GitHub Account -->
+                <div class="provider-item {% if current_user.github_id %}connected{% endif %}">
+                    <div class="provider-info">
+                        <i class="fab fa-github"></i>
+                        <div class="provider-details">
+                            <h3>GitHub</h3>
+                            {% if current_user.github_id %}
+                            <p>Connected as GitHub user</p>
+                            {% else %}
+                            <p>Not connected</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        {% if current_user.github_id %}
+                        <a href="{{ url_for('auth.disconnect_github') }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to disconnect GitHub?')">
+                            <i class="fas fa-unlink"></i> Disconnect
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('auth.github_login', link=1) }}" class="btn btn-primary">
+                            <i class="fas fa-link"></i> Connect
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
 
+                <!-- GitLab Account -->
+                <div class="provider-item {% if current_user.gitlab_id %}connected{% endif %}">
+                    <div class="provider-info">
+                        <i class="fab fa-gitlab"></i>
+                        <div class="provider-details">
+                            <h3>GitLab</h3>
+                            {% if current_user.gitlab_id %}
+                            <p>Connected as GitLab user</p>
+                            {% else %}
+                            <p>Not connected</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        {% if current_user.gitlab_id %}
+                        <a href="{{ url_for('gitlab_auth.disconnect_gitlab') }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to disconnect GitLab?')">
+                            <i class="fas fa-unlink"></i> Disconnect
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('gitlab_auth.gitlab_login', link=1) }}" class="btn btn-primary">
+                            <i class="fas fa-link"></i> Connect
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Stats -->
+        <div class="card">
+            <h2><i class="fas fa-chart-line"></i> Account Stats</h2>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">Member Since</p>
+                    <p style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary);">
+                        {{ current_user.created_at.strftime('%B %d, %Y') if current_user.created_at else 'N/A' }}
+                    </p>
+                </div>
+                
+                <div>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">Last Analysis</p>
+                    <p style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary);">
+                        {{ current_user.last_analysis.strftime('%B %d, %Y') if current_user.last_analysis else 'Never' }}
+                    </p>
+                </div>
+                
+                <div>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">Account Type</p>
+                    <p style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary);">
+                        {% if current_user.is_premium %}
+                        <i class="fas fa-crown" style="color: #fbbf24;"></i> Premium
+                        {% else %}
+                        <i class="fas fa-user"></i> Free
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+        <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <a href="#" class="btn btn-primary" style="padding: 1rem; text-align: center;">
+                <i class="fas fa-sync"></i> Run Analysis
+            </a>
+            <a href="#" class="btn btn-secondary" style="padding: 1rem; text-align: center;">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            <a href="#" class="btn btn-secondary" style="padding: 1rem; text-align: center;">
+                <i class="fas fa-chart-bar"></i> View Reports
+            </a>
+        </div>
+    </div>
+</div>
 {% endblock %}
