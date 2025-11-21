@@ -12,6 +12,7 @@ from routes.main import main_bp
 from models import db
 from routes.github_auth import github_auth_bp
 from routes.gitlab_auth import gitlab_auth_bp
+from routes.bitbucket_auth import bitbucket_auth_bp
 
 
 # app.py
@@ -60,6 +61,7 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(github_auth_bp)
     app.register_blueprint(gitlab_auth_bp)
+    app.register_blueprint(bitbucket_auth_bp)
 
     # Make language_manager available to templates
     @app.context_processor

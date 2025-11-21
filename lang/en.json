@@ -10,6 +10,18 @@
     "logout": "Logout",
     "profile": "Profile"
   },
+  "sidebar": {
+    "main": "Main",
+    "dashboard": "Dashboard",
+    "repositories": "Repositories",
+    "analytics": "Analytics",
+    "workspace": "Workspace",
+    "projects": "Projects",
+    "team": "Team",
+    "settings": "Settings",
+    "help": "Help & Support",
+    "logout": "Logout"
+  },
   "auth": {
     "welcome": "Welcome to CodeInsight",
     "login_with_github": "Login with GitHub",
@@ -55,5 +67,76 @@
     "save": "Save",
     "cancel": "Cancel",
     "continue": "Continue"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "welcome": "Welcome to your dashboard",
+      "recent_activity": "Recent Activity",
+      "overview": "Overview"
+    },
+    "repositories": {
+      "title": "Repositories",
+      "manage_repos": "Manage your repositories",
+      "sync_repos": "Sync repositories"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "code_insights": "Code Insights",
+      "performance": "Performance"
+    },
+    "projects": {
+      "title": "Projects",
+      "manage_projects": "Manage your projects",
+      "create_project": "Create Project"
+    },
+    "team": {
+      "title": "Team",
+      "manage_team": "Manage team members",
+      "invite_members": "Invite Members"
+    },
+    "settings": {
+      "title": "Settings",
+      "account_settings": "Account Settings",
+      "preferences": "Preferences"
+    },
+    "help": {
+      "title": "Help & Support",
+      "documentation": "Documentation",
+      "contact_support": "Contact Support"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information",
+    "save_changes": "Save Changes",
+    "changes_saved": "Changes saved successfully",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "refresh": "Refresh",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "open": "Open",
+    "toggle": "Toggle",
+    "expand": "Expand",
+    "collapse": "Collapse"
+  },
+  "notifications": {
+    "theme_changed": "Theme changed successfully",
+    "language_changed": "Language changed successfully",
+    "profile_updated": "Profile updated successfully",
+    "settings_saved": "Settings saved successfully"
   }
 }

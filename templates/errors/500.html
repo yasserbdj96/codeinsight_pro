@@ -1,1 +1,151 @@
-500
+<!-- ==================== 500.html ==================== -->
+{% extends "base.html" %}
+
+{% block title %}Server Error - CodeInsight{% endblock %}
+
+{% block extra_css %}
+<style>
+.error-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.error-content {
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+    .error-code {
+        font-size: 8rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        letter-spacing: -0.05em;
+        background: linear-gradient(135deg, var(--error-default), #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .error-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+    }
+
+    .error-description {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .error-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
+
+    .btn-primary {
+        background: var(--btn-primary-bg);
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: var(--btn-primary-hover);
+    }
+
+    .btn-secondary {
+        background: var(--btn-secondary-bg);
+        color: var(--text-primary);
+        border-color: var(--btn-secondary-border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--btn-secondary-hover);
+    }
+
+    .error-illustration {
+        margin-bottom: 2rem;
+    }
+
+    .error-illustration i {
+        font-size: 4rem;
+        color: var(--error-default);
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    @media (max-width: 480px) {
+        .error-code {
+            font-size: 5rem;
+        }
+
+        .error-title {
+            font-size: 1.25rem;
+        }
+
+        .error-actions {
+            flex-direction: column;
+        }
+
+        .error-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-content">
+        <div class="error-illustration">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="error-code">500</div>
+        <h1 class="error-title">Something went wrong</h1>
+        <p class="error-description">
+            We're experiencing some technical difficulties. 
+            Our team has been notified and we're working on fixing it.
+        </p>
+        <div class="error-actions">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i>
+                Go to Homepage
+            </a>
+            <a href="javascript:location.reload()" class="btn btn-secondary">
+                <i class="fas fa-sync"></i>
+                Try Again
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

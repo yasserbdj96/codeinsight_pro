@@ -24,6 +24,11 @@ class User(UserMixin, db.Model):
     gitlab_token = db.Column(db.String(500))
     gitlab_refresh_token = db.Column(db.String(500))
     gitlab_token_expires_at = db.Column(db.DateTime)
+
+    # Bitbucket OAuth
+    bitbucket_id = db.Column(db.String(100), unique=True, index=True)
+    bitbucket_token = db.Column(db.String(500))
+    bitbucket_refresh_token = db.Column(db.String(500))
     
     # Account Status
     is_premium = db.Column(db.Boolean, default=False)
@@ -43,7 +48,7 @@ class User(UserMixin, db.Model):
     # Preferences
     language = db.Column(db.String(10), default='en')
     theme = db.Column(db.String(10), default='light')
-    avatar_source = db.Column(db.String(20), default='github')  # 'github' or 'gitlab'
+    avatar_source = db.Column(db.String(20), default='github')  # 'github' or 'gitlab', or 'bitbucket'
     
     # Payment Information
     stripe_customer_id = db.Column(db.String(100))
@@ -67,9 +72,13 @@ class User(UserMixin, db.Model):
         """Check if user has GitLab connected"""
         return self.gitlab_id is not None
     
+    def has_bitbucket(self):
+        """Check if user has Bitbucket connected"""
+        return self.bitbucket_id is not None
+
     def has_any_oauth(self):
         """Check if user has any OAuth provider connected"""
-        return self.has_github() or self.has_gitlab()
+        return self.has_github() or self.has_gitlab() or self.has_bitbucket()
     
     def can_disconnect_github(self):
         """Check if user can safely disconnect GitHub"""
@@ -79,12 +88,18 @@ class User(UserMixin, db.Model):
         """Check if user can safely disconnect GitLab"""
         return self.has_gitlab() and self.has_github()
     
+    def can_disconnect_bitbucket(self):
+        """Check if user can safely disconnect Bitbucket"""
+        return self.has_bitbucket() and (self.has_github() or self.has_gitlab())
+    
     def get_primary_oauth_provider(self):
         """Get the primary OAuth provider"""
-        if self.github_id and not self.gitlab_id:
+        if self.github_id and not self.gitlab_id and not self.bitbucket_id:
             return 'github'
-        elif self.gitlab_id and not self.github_id:
+        elif self.gitlab_id and not self.github_id and not self.bitbucket_id:
             return 'gitlab'
+        elif self.bitbucket_id and not self.github_id and not self.gitlab_id:
+            return 'bitbucket'
         elif self.avatar_source:
             return self.avatar_source
         elif self.github_id:
@@ -94,7 +109,7 @@ class User(UserMixin, db.Model):
     
     def update_avatar_source(self, provider):
         """Update the avatar source"""
-        if provider in ['github', 'gitlab']:
+        if provider in ['github', 'gitlab', 'bitbucket']:
             self.avatar_source = provider
     
     def is_premium_active(self):
@@ -126,6 +141,7 @@ class User(UserMixin, db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'has_github': self.has_github(),
             'has_gitlab': self.has_gitlab(),
+            'has_bitbucket': self.has_bitbucket(),
             'avatar_source': self.avatar_source,
             'language': self.language,
             'theme': self.theme
@@ -184,3 +200,8 @@ class User(UserMixin, db.Model):
             counter += 1
         
         return username
+    
+    @staticmethod
+    def find_by_bitbucket_id(bitbucket_id):
+        """Find user by Bitbucket ID"""
+        return User.query.filter_by(bitbucket_id=str(bitbucket_id)).first()

@@ -55,6 +55,11 @@ class Config:
     GITLAB_CLIENT_SECRET = os.environ.get('GITLAB_CLIENT_SECRET', '')
     GITLAB_REDIRECT_URI = os.environ.get('GITLAB_REDIRECT_URI', 'http://localhost:5000/auth/gitlab/callback')
     GITLAB_TOKEN_URL = 'https://gitlab.com/oauth/token'
+
+    # Bitbucket OAuth Configuration
+    BITBUCKET_CLIENT_ID = os.environ.get('BITBUCKET_CLIENT_ID', '')
+    BITBUCKET_CLIENT_SECRET = os.environ.get('BITBUCKET_CLIENT_SECRET', '')
+    BITBUCKET_REDIRECT_URI = os.environ.get('BITBUCKET_REDIRECT_URI', 'http://localhost:5000/auth/bitbucket/callback')
     
     # Stripe Configuration
     STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
@@ -97,6 +102,9 @@ class Config:
     ENABLE_ACHIEVEMENTS = os.environ.get('ENABLE_ACHIEVEMENTS', 'True') == 'True'
     ENABLE_BADGES = os.environ.get('ENABLE_BADGES', 'True') == 'True'
     ENABLE_PUBLIC_PROFILES = os.environ.get('ENABLE_PUBLIC_PROFILES', 'True') == 'True'
+
+    # Feature Flags - Add Bitbucket
+    ENABLE_BITBUCKET = os.environ.get('ENABLE_BITBUCKET', 'True') == 'True'
 
 # Create config instance
 config = Config()

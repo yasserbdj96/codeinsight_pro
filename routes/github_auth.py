@@ -258,7 +258,7 @@ def disconnect_github():
         return redirect(url_for('main.dashboard'))
     
     # Check if user has at least one OAuth provider
-    if not current_user.gitlab_id:
+    if not current_user.gitlab_id and not current_user.bitbucket_id:
         flash('Cannot disconnect GitHub - you need at least one connected account', 'error')
         return redirect(url_for('main.dashboard'))
     
@@ -268,6 +268,8 @@ def disconnect_github():
     if current_user.avatar_source == 'github':
         if current_user.gitlab_id:
             current_user.avatar_source = 'gitlab'
+        elif current_user.bitbucket_id:
+            current_user.avatar_source = 'bitbucket'
         else:
             current_user.avatar_url = None
             current_user.avatar_source = None

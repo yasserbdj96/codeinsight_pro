@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - CodeInsight{% endblock %}
+
+{% block extra_css %}
+
+<style> 
+.settings-container { max-width: 1000px; margin: 0 auto; }
+
+/* Settings Layout */ 
+.settings-layout { display: grid; grid-template-columns: 250px 1fr; gap: 2rem; } 
+
+/* Sidebar Navigation */ 
+.settings-sidebar { position: sticky; top: 80px; height: fit-content; }
+.settings-nav { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); overflow: hidden; } 
+.nav-section { padding: 1rem 0; border-bottom: 1px solid var(--border-subtle); } 
+.nav-section:last-child { border-bottom: none; } 
+.nav-section-title { font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; padding: 0 1.25rem 0.5rem; } 
+.nav-links { list-style: none; } 
+.nav-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; border-left: 3px solid transparent; } 
+.nav-link:hover { background: var(--bg-secondary); color: var(--text-primary); } 
+.nav-link.active { background: var(--accent-muted); color: var(--accent-primary); border-left-color: var(--accent-primary); } 
+.nav-link i { width: 16px; text-align: center; } 
+
+/* Settings Content */ 
+.settings-content { min-height: 600px; } 
+.settings-section { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); margin-bottom: 1.5rem; overflow: hidden; } 
+.settings-header { padding: 1.5rem; border-bottom: 1px solid var(--border-subtle); } 
+.settings-title { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; } 
+.settings-description { color: var(--text-secondary); font-size: 0.875rem; } 
+.settings-body { padding: 1.5rem; } 
+/* Form Styles */ .form-group { margin-bottom: 1.5rem; } 
+.form-label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; } 
+.form-help { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.375rem; } 
+.form-control { width: 100%; padding: 0.75rem 1rem; font-size: 0.875rem; background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); transition: all 0.2s; } 
+.form-control:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-muted); } 
+.form-control:disabled { background: var(--bg-secondary); color: var(--text-tertiary); cursor: not-allowed; } 
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; } 
+/* Checkbox and Toggle */ 
+.checkbox-group { display: flex; align-items: center; gap: 0.75rem; } 
+.checkbox { width: 18px; height: 18px; border: 1px solid var(--border-default); border-radius: 4px; background: var(--bg-primary); cursor: pointer; position: relative; transition: all 0.2s; } .checkbox.checked { background: var(--accent-primary); border-color: var(--accent-primary); } .checkbox.checked::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 12px; font-weight: 600; } .toggle-switch { position: relative; width: 44px; height: 24px; } .toggle-input { opacity: 0; width: 0; height: 0; } .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border-default); border-radius: 24px; transition: all 0.2s; } .toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: all 0.2s; } .toggle-input:checked + .toggle-slider { background: var(--accent-primary); } .toggle-input:checked + .toggle-slider::before { transform: translateX(20px); } /* Buttons */ .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 600; border-radius: var(--radius-md); text-decoration: none; transition: all 0.2s; cursor: pointer; border: 1px solid transparent; } .btn-primary { background: var(--btn-primary-bg); color: #fff; } .btn-primary:hover { background: var(--btn-primary-hover); } .btn-secondary { background: var(--btn-secondary-bg); color: var(--text-primary); border-color: var(--btn-secondary-border); } .btn-secondary:hover { background: var(--btn-secondary-hover); } .btn-danger { background: var(--error-default); color: #fff; } .btn-danger:hover { background: #b91c1c; } .btn-outline { background: transparent; color: var(--text-primary); border-color: var(--border-default); } .btn-outline:hover { background: var(--bg-tertiary); } /* Danger Zone */ .danger-zone { border: 1px solid var(--error-default); background: var(--error-muted); border-radius: var(--radius-md); padding: 1.5rem; } .danger-zone-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; } .danger-zone-title { font-size: 1rem; font-weight: 600; color: var(--error-default); margin-bottom: 0.25rem; } .danger-zone-description { font-size: 0.875rem; color: var(--error-default); opacity: 0.9; } /* Avatar Upload */ .avatar-upload { display: flex; align-items: center; gap: 1.5rem; } .avatar-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border-default); flex-shrink: 0; } .avatar-upload-actions { display: flex; flex-direction: column; gap: 0.5rem; } /* Connected Accounts */ .connected-accounts { display: flex; flex-direction: column; gap: 1rem; } .account-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); } .account-info { display: flex; align-items: center; gap: 1rem; } .account-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: 1.25rem; color: #fff; } .account-icon.github { background: #24292e; } [data-theme="dark"] .account-icon.github { background: #f0f6fc; color: #24292e; } .account-icon.gitlab { background: #fc6d26; } .account-icon.bitbucket { background: #0052CC; } .account-details h3 { font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.125rem; } .account-details p { font-size: 0.8125rem; color: var(--text-secondary); } .account-status { display: flex; align-items: center; gap: 0.75rem; } .status-badge { padding: 0.25rem 0.625rem; font-size: 0.75rem; font-weight: 600; border-radius: 2rem; background: var(--success-muted); color: var(--success-default); } /* Modal */ .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 1rem; } .modal { background: var(--bg-primary); border-radius: var(--radius-lg); padding: 2rem; max-width: 400px; width: 100%; box-shadow: var(--shadow-xl); } .modal-header { margin-bottom: 1.5rem; } .modal-title { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; } .modal-description { color: var(--text-secondary); font-size: 0.875rem; } .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; } /* Responsive */ @media (max-width: 768px) { .settings-layout { grid-template-columns: 1fr; } .settings-sidebar { position: static; margin-bottom: 1rem; } .form-row { grid-template-columns: 1fr; } .avatar-upload { flex-direction: column; text-align: center; } .account-item { flex-direction: column; gap: 1rem; text-align: center; } .account-info { flex-direction: column; } .account-status { justify-content: center; } } @media (max-width: 480px) { .settings-body { padding: 1rem; } .modal { padding: 1.5rem; } .modal-actions { flex-direction: column; } } </style>
+{% endblock %}
+
+{% block content %}
+
+<div class="settings-container"> <div class="settings-layout"> <!-- Sidebar Navigation --> <div class="settings-sidebar"> <div class="settings-nav"> <div class="nav-section"> <div class="nav-section-title">Account</div> <ul class="nav-links" style="display:block;"> <li><a href="#profile" class="nav-link active" data-section="profile"> <i class="fas fa-user"></i> <span>Profile</span> </a></li> <li><a href="#account" class="nav-link" data-section="account"> <i class="fas fa-cog"></i> <span>Account</span> </a></li> <li><a href="#security" class="nav-link" data-section="security"> <i class="fas fa-shield-alt"></i> <span>Security</span> </a></li> </ul> </div> <div class="nav-section"> <div class="nav-section-title">Preferences</div> <ul class="nav-links" style="display:block;"> <li><a href="#notifications" class="nav-link" data-section="notifications"> <i class="fas fa-bell"></i> <span>Notifications</span> </a></li> <li><a href="#privacy" class="nav-link" data-section="privacy"> <i class="fas fa-eye"></i> <span>Privacy</span> </a></li> <li><a href="#integrations" class="nav-link" data-section="integrations"> <i class="fas fa-plug"></i> <span>Integrations</span> </a></li> </ul> </div> <div class="nav-section"> <div class="nav-section-title">Billing</div> <ul class="nav-links" style="display:block;"> <li><a href="#billing" class="nav-link" data-section="billing"> <i class="fas fa-credit-card"></i> <span>Billing & Plans</span> </a></li> </ul> </div> </div> </div>
+
+
+    <!-- Settings Content -->
+    <div class="settings-content">
+        <!-- Profile Section -->
+        <div class="settings-section" id="profile-section">
+            <div class="settings-header">
+                <h2 class="settings-title">Profile Settings</h2>
+                <p class="settings-description">Manage your personal information and how others see you on CodeInsight</p>
+            </div>
+            <div class="settings-body">
+                <form id="profile-form">
+                    <div class="form-group">
+                        <div class="avatar-upload">
+                            {% if current_user.avatar_url %}
+                            <img src="{{ current_user.avatar_url }}" alt="Avatar" class="avatar-preview" id="avatar-preview">
+                            {% else %}
+                            <div class="avatar-preview" id="avatar-preview" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-emphasis)); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.5rem; font-weight: 700;">
+                                {{ current_user.username[0].upper() }}
+                            </div>
+                            {% endif %}
+                            <div class="avatar-upload-actions">
+                                <input type="file" id="avatar-input" accept="image/*" style="display: none;">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('avatar-input').click()">
+                                    <i class="fas fa-upload"></i> Upload Photo
+                                </button>
+                                <button type="button" class="btn btn-outline" onclick="removeAvatar()">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="username">Username</label>
+                            <input type="text" id="username" class="form-control" value="{{ current_user.username }}" required>
+                            <div class="form-help">This is your public display name</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <input type="email" id="email" class="form-control" value="{{ current_user.email }}" required>
+                            <div class="form-help">We'll never share your email with anyone else</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="bio">Bio</label>
+                        <textarea id="bio" class="form-control" rows="4" placeholder="Tell us about yourself...">{{ current_user.bio or '' }}</textarea>
+                        <div class="form-help">Brief description for your profile</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="website">Website</label>
+                        <input type="url" id="website" class="form-control" value="{{ current_user.website or '' }}" placeholder="https://example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="location">Location</label>
+                        <input type="text" id="location" class="form-control" value="{{ current_user.location or '' }}" placeholder="City, Country">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Account Section -->
+        <div class="settings-section" id="account-section" style="display: none;">
+            <div class="settings-header">
+                <h2 class="settings-title">Account Settings</h2>
+                <p class="settings-description">Manage your account preferences and connected services</p>
+            </div>
+            <div class="settings-body">
+                <div class="form-group">
+                    <label class="form-label">Connected Accounts</label>
+                    <div class="connected-accounts">
+                        <!-- GitHub -->
+                        <div class="account-item">
+                            <div class="account-info">
+                                <div class="account-icon github">
+                                    <i class="fab fa-github"></i>
+                                </div>
+                                <div class="account-details">
+                                    <h3>GitHub</h3>
+                                    <p>Connect your GitHub account to analyze repositories</p>
+                                </div>
+                            </div>
+                            <div class="account-status">
+                                {% if current_user.github_id %}
+                                <span class="status-badge">Connected</span>
+                                <a href="{{ url_for('auth.disconnect_github') }}" class="btn btn-sm btn-outline" onclick="return confirm('Disconnect GitHub?')">
+                                    Disconnect
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('auth.github_login', link=1) }}" class="btn btn-sm btn-primary">
+                                    Connect
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- GitLab -->
+                        <div class="account-item">
+                            <div class="account-info">
+                                <div class="account-icon gitlab">
+                                    <i class="fab fa-gitlab"></i>
+                                </div>
+                                <div class="account-details">
+                                    <h3>GitLab</h3>
+                                    <p>Connect your GitLab account to analyze repositories</p>
+                                </div>
+                            </div>
+                            <div class="account-status">
+                                {% if current_user.gitlab_id %}
+                                <span class="status-badge">Connected</span>
+                                <a href="{{ url_for('gitlab_auth.disconnect_gitlab') }}" class="btn btn-sm btn-outline" onclick="return confirm('Disconnect GitLab?')">
+                                    Disconnect
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('gitlab_auth.gitlab_login', link=1) }}" class="btn btn-sm btn-primary">
+                                    Connect
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Bitbucket -->
+                        <div class="account-item">
+                            <div class="account-info">
+                                <div class="account-icon bitbucket">
+                                    <i class="fab fa-bitbucket"></i>
+                                </div>
+                                <div class="account-details">
+                                    <h3>Bitbucket</h3>
+                                    <p>Connect your Bitbucket account to analyze repositories</p>
+                                </div>
+                            </div>
+                            <div class="account-status">
+                                {% if current_user.bitbucket_id %}
+                                <span class="status-badge">Connected</span>
+                                <a href="{{ url_for('bitbucket_auth.disconnect_bitbucket') }}" class="btn btn-sm btn-outline" onclick="return confirm('Disconnect Bitbucket?')">
+                                    Disconnect
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('bitbucket_auth.bitbucket_login', link=1) }}" class="btn btn-sm btn-primary">
+                                    Connect
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Language & Region</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="language">Language</label>
+                            <select id="language" class="form-control">
+                                <option value="en" {% if session.get('language', 'en') == 'en' %}selected{% endif %}>English</option>
+                                <option value="ar" {% if session.get('language', 'en') == 'ar' %}selected{% endif %}>Arabic</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="timezone">Timezone</label>
+                            <select id="timezone" class="form-control">
+                                <option value="UTC">UTC</option>
+                                <option value="EST">Eastern Time (EST)</option>
+                                <option value="PST">Pacific Time (PST)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="settings-section">
+            <div class="settings-header">
+                <h2 class="settings-title" style="color: var(--error-default);">Danger Zone</h2>
+                <p class="settings-description">Irreversible and destructive actions</p>
+            </div>
+            <div class="settings-body">
+                <div class="danger-zone">
+                    <div class="danger-zone-header">
+                        <div>
+                            <h3 class="danger-zone-title">Delete Account</h3>
+                            <p class="danger-zone-description">Once you delete your account, there is no going back. Please be certain.</p>
+                        </div>
+                        <button type="button" class="btn btn-danger" onclick="showDeleteModal()">
+                            <i class="fas fa-trash"></i> Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div><!-- Delete Account Modal --><div class="modal-overlay" id="delete-modal" style="display: none;"> <div class="modal"> <div class="modal-header"> <h3 class="modal-title">Delete Your Account</h3> <p class="modal-description">This action cannot be undone. This will permanently delete your account and remove all data from our servers.</p> </div> <div class="form-group"> <label class="form-label" for="confirm-username">Please type your username to confirm:</label> <input type="text" id="confirm-username" class="form-control" placeholder="{{ current_user.username }}"> </div> <div class="modal-actions"> <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Cancel</button> <button type="button" class="btn btn-danger" id="confirm-delete" disabled> <i class="fas fa-trash"></i> Delete Account </button> </div> </div> </div> {% endblock %}
+{% block extra_js %}
+
+<script> // Navigation document.querySelectorAll('.nav-link').forEach(link => { link.addEventListener('click', function(e) { e.preventDefault(); // Update active state document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active')); this.classList.add('active'); // Show corresponding section const section = this.getAttribute('data-section'); document.querySelectorAll('.settings-section').forEach(s => s.style.display = 'none'); document.getElementById(section + '-section').style.display = 'block'; }); }); // Avatar upload preview document.getElementById('avatar-input').addEventListener('change', function(e) { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(e) { const preview = document.getElementById('avatar-preview'); preview.innerHTML = ''; preview.style.background = 'none'; const img = document.createElement('img'); img.src = e.target.result; img.className = 'avatar-preview'; img.style.objectFit = 'cover'; preview.appendChild(img); }; reader.readAsDataURL(file); } }); function removeAvatar() { const preview = document.getElementById('avatar-preview'); preview.innerHTML = '{{ current_user.username[0].upper() }}'; preview.style.background = 'linear-gradient(135deg, var(--accent-primary), var(--accent-emphasis))'; preview.style.display = 'flex'; preview.style.alignItems = 'center'; preview.style.justifyContent = 'center'; preview.style.color = '#fff'; preview.style.fontSize = '1.5rem'; preview.style.fontWeight = '700'; } // Delete account modal function showDeleteModal() { document.getElementById('delete-modal').style.display = 'flex'; } function hideDeleteModal() { document.getElementById('delete-modal').style.display = 'none'; document.getElementById('confirm-username').value = ''; document.getElementById('confirm-delete').disabled = true; } document.getElementById('confirm-username').addEventListener('input', function() { const confirmBtn = document.getElementById('confirm-delete'); confirmBtn.disabled = this.value !== '{{ current_user.username }}'; }); document.getElementById('confirm-delete').addEventListener('click', function() { if (this.disabled) return; // Here you would typically make an API call to delete the account alert('Account deletion would be processed here. This is a demo.'); hideDeleteModal(); }); // Form submission document.getElementById('profile-form').addEventListener('submit', function(e) { e.preventDefault(); // Here you would typically make an API call to save the profile alert('Profile saved successfully!'); }); // Language change document.getElementById('language').addEventListener('change', function() { changeLanguage(this.value); }); </script>
+{% endblock %}
