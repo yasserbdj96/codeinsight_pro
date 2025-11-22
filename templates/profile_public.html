@@ -15,7 +15,16 @@
 
 {% block content %}
 
-<div class="profile-container"> <!-- Profile Header --> <div class="profile-header"> {% if profile_user.avatar_url %} <img src="{{ profile_user.avatar_url }}" alt="{{ profile_user.username }}" class="profile-avatar"> {% else %} <div class="profile-avatar-placeholder"> {{ profile_user.username[0].upper() }} </div> {% endif %}
+<div class="profile-container"> 
+    <!-- Profile Header --> 
+     <div class="profile-header"> 
+        {% if profile_user.avatar_source == "github" or profile_user.avatar_source == "gitlab" or profile_user.avatar_source == "bitbucket" %}
+        <img src="{{ profile_user.avatar_url }}" alt="Avatar" class="profile-avatar" title="{{ profile_user.username }}">
+        {% elif profile_user.avatar_source == "custom" %}
+        <img src="/static/uploads/avatars/{{ profile_user.custom_avatar }}" alt="Avatar" class="profile-avatar" title="{{ profile_user.username }}">
+        {% else %}
+        <div alt="Avatar" class="profile-avatar-placeholder" title="{{ profile_user.username }}" style="background: {{ profile_user.get_letter_avatar_color() }};display: flex;align-items: center;justify-content: center;">{{ current_user.username[0].upper() }}</div>
+        {% endif %}
 
     <h1 class="profile-name">
         {{ profile_user.username }}

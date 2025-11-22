@@ -9,3 +9,5 @@ flask_session/
 *.sh
 *.db-journal
 .env
+*.jpg
+*.png

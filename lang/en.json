@@ -52,7 +52,21 @@
     "account_linked_subject": "✅ {provider} Account Linked",
     "account_linked_content": "Hello {username}, your {provider} account has been successfully linked!",
     "login_subject": "✅ New Login",
-    "login_content": "Welcome back, {username}"
+    "login_content": "Welcome back, {username}",
+    "username_changed_subject": "🔄 Username Changed",
+    "username_changed":"Username Changed",
+    "username_changed_from_to":"Your username has been changed from <strong>{old_username}</strong> to <strong>{new_username}</strong>.",
+    "if_you_didnt_make_this_change":"If you didn't make this change, please contact support immediately.",
+    "change_verification_subject": "🔐 Email Change Verification Code",
+    "change_verification_heading": "Email Change Verification",
+    "change_verification_description": "You requested to change your CodeInsight email to this address.",
+    "your_verification_code": "Your verification code is:",
+    "code_expires_in": "This code expires in 1 hour.",
+    "if_not_requested": "If you didn't request this change, please ignore this email.",
+    "change_requested_subject": "⚠️ Email Change Requested",
+    "change_requested_heading": "Email Change Requested",
+    "change_requested_description": "Someone requested to change your CodeInsight account email to: <strong>{new_email}</strong>",
+    "secure_account_warning": "If this wasn't you, please secure your account immediately."
   },
   "user": {
     "premium": "Premium",

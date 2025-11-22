@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}Language Management - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-container { max-width: 1200px; margin: 0 auto; }
+.admin-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+.admin-header-left { }
+.back-link { color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.back-link:hover { color: var(--accent-primary); }
+.admin-title { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
+
+.btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; font-size: 0.875rem; font-weight: 600; border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+.btn-primary { background: var(--accent-primary); color: #fff; }
+.btn-primary:hover { background: var(--accent-emphasis); }
+.btn-secondary { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-default); }
+.btn-sm { padding: 0.5rem 0.875rem; font-size: 0.8125rem; }
+
+/* Language Cards */
+.languages-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.lang-card { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); overflow: hidden; transition: all 0.2s; }
+.lang-card:hover { border-color: var(--accent-primary); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.lang-card-header { padding: 1.25rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+.lang-info { display: flex; align-items: center; gap: 1rem; }
+.lang-flag { font-size: 2rem; }
+.lang-name { font-size: 1.125rem; font-weight: 600; color: var(--text-primary); }
+.lang-code { font-size: 0.8125rem; color: var(--text-secondary); text-transform: uppercase; }
+.lang-status { padding: 0.25rem 0.625rem; font-size: 0.6875rem; font-weight: 600; border-radius: 1rem; text-transform: uppercase; }
+.lang-status.active { background: var(--success-muted); color: var(--success-default); }
+.lang-status.default { background: var(--accent-muted); color: var(--accent-primary); }
+.lang-card-body { padding: 1.25rem; }
+.lang-stats { display: flex; gap: 1.5rem; margin-bottom: 1rem; }
+.lang-stat { text-align: center; }
+.lang-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+.lang-stat-label { font-size: 0.75rem; color: var(--text-tertiary); }
+.lang-card-actions { display: flex; gap: 0.5rem; }
+
+/* Editor */
+.editor-section { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); overflow: hidden; }
+.editor-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+.editor-title { font-size: 1.125rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 0.75rem; }
+.editor-body { display: grid; grid-template-columns: 250px 1fr; min-height: 500px; }
+.editor-sidebar { border-right: 1px solid var(--border-subtle); overflow-y: auto; }
+.editor-nav-item { display: block; padding: 0.875rem 1.25rem; color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; border-left: 3px solid transparent; cursor: pointer; transition: all 0.2s; }
+.editor-nav-item:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.editor-nav-item.active { background: var(--accent-muted); color: var(--accent-primary); border-left-color: var(--accent-primary); }
+.editor-content { padding: 1.5rem; overflow-y: auto; }
+.string-group { margin-bottom: 1.5rem; }
+.string-group-title { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.string-item { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-md); }
+.string-key { font-size: 0.8125rem; color: var(--text-tertiary); font-family: monospace; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); }
+.string-value { padding: 0.5rem 0.75rem; border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--bg-primary); color: var(--text-primary); font-size: 0.875rem; }
+.string-value:focus { outline: none; border-color: var(--accent-primary); }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 1rem; backdrop-filter: blur(4px); }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--bg-primary); border-radius: var(--radius-lg); max-width: 450px; width: 100%; animation: modalIn 0.2s; }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95); } }
+.modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+.modal-title { font-size: 1.25rem; font-weight: 600; }
+.modal-close { background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 1.25rem; }
+.modal-body { padding: 1.5rem; }
+.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 0.75rem; }
+.form-group { margin-bottom: 1.25rem; }
+.form-label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; }
+.form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border-default); border-radius: var(--radius-md); background: var(--bg-primary); color: var(--text-primary); font-size: 0.875rem; }
+.form-control:focus { outline: none; border-color: var(--accent-primary); }
+.form-help { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.375rem; }
+
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 10001; }
+.toast { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); margin-bottom: 0.75rem; animation: toastIn 0.3s; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(100%); } }
+.toast.success { border-left: 4px solid var(--success-default); }
+.toast.error { border-left: 4px solid var(--error-default); }
+
+@media (max-width: 768px) {
+    .editor-body { grid-template-columns: 1fr; }
+    .editor-sidebar { border-right: none; border-bottom: 1px solid var(--border-subtle); }
+    .string-item { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="toast-container" id="toast-container"></div>
+
+<div class="admin-container">
+    <div class="admin-header">
+        <div class="admin-header-left">
+            <a href="{{ url_for('admin.dashboard') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+            <h1 class="admin-title"><i class="fas fa-language"></i> Language Management</h1>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('add-lang-modal')"><i class="fas fa-plus"></i> Add Language</button>
+    </div>
+
+    <!-- Language Cards -->
+    <div class="languages-grid">
+        {% for code in supported %}
+        <div class="lang-card">
+            <div class="lang-card-header">
+                <div class="lang-info">
+                    <span class="lang-flag">{% if code == 'en' %}🇺🇸{% elif code == 'ar' %}🇸🇦{% elif code == 'fr' %}🇫🇷{% elif code == 'es' %}🇪🇸{% elif code == 'de' %}🇩🇪{% else %}🌐{% endif %}</span>
+                    <div>
+                        <div class="lang-name">{% if code == 'en' %}English{% elif code == 'ar' %}العربية{% elif code == 'fr' %}Français{% elif code == 'es' %}Español{% elif code == 'de' %}Deutsch{% else %}{{ code }}{% endif %}</div>
+                        <div class="lang-code">{{ code }}</div>
+                    </div>
+                </div>
+                {% if code == 'en' %}<span class="lang-status default">Default</span>{% else %}<span class="lang-status active">Active</span>{% endif %}
+            </div>
+            <div class="lang-card-body">
+                <div class="lang-stats">
+                    <div class="lang-stat">
+                        <div class="lang-stat-value">{{ languages.get(code, {})|length }}</div>
+                        <div class="lang-stat-label">Sections</div>
+                    </div>
+                    <div class="lang-stat">
+                        <div class="lang-stat-value" id="string-count-{{ code }}">--</div>
+                        <div class="lang-stat-label">Strings</div>
+                    </div>
+                </div>
+                <div class="lang-card-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="editLanguage('{{ code }}')"><i class="fas fa-edit"></i> Edit</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Language Editor -->
+    <div class="editor-section" id="editor-section" style="display: none;">
+        <div class="editor-header">
+            <h3 class="editor-title"><i class="fas fa-edit"></i> <span id="editor-lang-name">Language Editor</span></h3>
+            <div>
+                <button class="btn btn-secondary btn-sm" onclick="closeEditor()">Close</button>
+                <button class="btn btn-primary btn-sm" onclick="saveLanguage()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+        </div>
+        <div class="editor-body">
+            <div class="editor-sidebar" id="editor-nav"></div>
+            <div class="editor-content" id="editor-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Language Modal -->
+<div class="modal-overlay" id="add-lang-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Add New Language</h3>
+            <button class="modal-close" onclick="closeModal('add-lang-modal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Language Code</label>
+                <input type="text" id="new-lang-code" class="form-control" placeholder="e.g., fr, es, de" maxlength="2">
+                <div class="form-help">Use ISO 639-1 two-letter code</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Language Name</label>
+                <input type="text" id="new-lang-name" class="form-control" placeholder="e.g., Français">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('add-lang-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="createLanguage()"><i class="fas fa-plus"></i> Create</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CSRF_TOKEN = '{{ csrf_token() }}';
+let currentLang = null;
+let languageData = {};
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+async function apiCall(endpoint, method = 'POST', data = null) {
+    const options = { method, headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN } };
+    if (data) options.body = JSON.stringify(data);
+    const response = await fetch(endpoint, options);
+    return response.json();
+}
+
+function countStrings(obj) {
+    let count = 0;
+    for (const key in obj) {
+        if (typeof obj[key] === 'object') count += countStrings(obj[key]);
+        else count++;
+    }
+    return count;
+}
+
+// Initialize counts
+document.addEventListener('DOMContentLoaded', async () => {
+    const result = await apiCall('/admin/api/languages', 'GET');
+    if (result.success) {
+        for (const code of result.supported) {
+            const count = countStrings(result.languages[code] || {});
+            const el = document.getElementById(`string-count-${code}`);
+            if (el) el.textContent = count;
+        }
+    }
+});
+
+async function editLanguage(code) {
+    currentLang = code;
+    const result = await apiCall(`/admin/api/languages/${code}`, 'GET');
+    if (!result.success) { showToast(result.error, 'error'); return; }
+    
+    languageData = result.language;
+    document.getElementById('editor-lang-name').textContent = `Editing: ${code.toUpperCase()}`;
+    
+    // Build navigation
+    const nav = document.getElementById('editor-nav');
+    nav.innerHTML = '';
+    const sections = Object.keys(languageData);
+    sections.forEach((section, i) => {
+        const item = document.createElement('div');
+        item.className = `editor-nav-item ${i === 0 ? 'active' : ''}`;
+        item.textContent = section;
+        item.onclick = () => showSection(section);
+        nav.appendChild(item);
+    });
+    
+    if (sections.length > 0) showSection(sections[0]);
+    document.getElementById('editor-section').style.display = 'block';
+    document.getElementById('editor-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showSection(section) {
+    document.querySelectorAll('.editor-nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.editor-nav-item:nth-child(${Object.keys(languageData).indexOf(section) + 1})`).classList.add('active');
+    
+    const content = document.getElementById('editor-content');
+    content.innerHTML = '';
+    
+    const sectionData = languageData[section];
+    renderStrings(content, section, sectionData, [section]);
+}
+
+function renderStrings(container, title, data, path) {
+    const group = document.createElement('div');
+    group.className = 'string-group';
+    group.innerHTML = `<div class="string-group-title"><i class="fas fa-folder-open"></i> ${title}</div>`;
+    
+    for (const key in data) {
+        const fullPath = [...path, key].join('.');
+        if (typeof data[key] === 'object') {
+            renderStrings(group, key, data[key], [...path, key]);
+        } else {
+            const item = document.createElement('div');
+            item.className = 'string-item';
+            item.innerHTML = `
+                <div class="string-key">${key}</div>
+                <input type="text" class="string-value" data-path="${fullPath}" value="${escapeHtml(data[key])}">
+            `;
+            group.appendChild(item);
+        }
+    }
+    container.appendChild(group);
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function closeEditor() {
+    document.getElementById('editor-section').style.display = 'none';
+    currentLang = null;
+}
+
+async function saveLanguage() {
+    if (!currentLang) return;
+    
+    // Collect all values
+    document.querySelectorAll('.string-value').forEach(input => {
+        const path = input.dataset.path.split('.');
+        let obj = languageData;
+        for (let i = 0; i < path.length - 1; i++) {
+            obj = obj[path[i]];
+        }
+        obj[path[path.length - 1]] = input.value;
+    });
+    
+    const result = await apiCall(`/admin/api/languages/${currentLang}`, 'PUT', languageData);
+    if (result.success) {
+        showToast('Language saved successfully');
+    } else {
+        showToast(result.error, 'error');
+    }
+}
+
+async function createLanguage() {
+    const code = document.getElementById('new-lang-code').value.trim().toLowerCase();
+    const name = document.getElementById('new-lang-name').value.trim();
+    
+    if (!code || !name) { showToast('Code and name required', 'error'); return; }
+    if (code.length !== 2) { showToast('Code must be 2 characters', 'error'); return; }
+    
+    const result = await apiCall('/admin/api/languages', 'POST', { code, name });
+    if (result.success) {
+        showToast(result.message);
+        closeModal('add-lang-modal');
+        setTimeout(() => location.reload(), 1000);
+    } else {
+        showToast(result.error, 'error');
+    }
+}
+
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); }));
+</script>
+{% endblock %}

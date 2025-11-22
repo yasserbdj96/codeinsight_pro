@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - CodeInsight{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-container { max-width: 1400px; margin: 0 auto; }
+.admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.admin-title { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
+.admin-badge { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 0.25rem 0.75rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 600; margin-left: 0.75rem; }
+
+/* Sidebar */
+.admin-layout { display: grid; grid-template-columns: 240px 1fr; gap: 2rem; }
+.admin-sidebar { position: sticky; top: 80px; height: fit-content; }
+.admin-nav { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); overflow: hidden; }
+.admin-nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem; color: var(--text-secondary); text-decoration: none; font-size: 0.9375rem; font-weight: 500; border-left: 3px solid transparent; transition: all 0.2s; }
+.admin-nav-item:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.admin-nav-item.active { background: var(--accent-muted); color: var(--accent-primary); border-left-color: var(--accent-primary); }
+.admin-nav-item i { width: 20px; text-align: center; }
+
+/* Stats Cards */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: 1.5rem; }
+.stat-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+.stat-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: 1.25rem; }
+.stat-icon.blue { background: #dbeafe; color: #2563eb; }
+.stat-icon.green { background: #d1fae5; color: #059669; }
+.stat-icon.purple { background: #e9d5ff; color: #7c3aed; }
+.stat-icon.orange { background: #fed7aa; color: #ea580c; }
+[data-theme="dark"] .stat-icon.blue { background: #1e3a5f; }
+[data-theme="dark"] .stat-icon.green { background: #064e3b; }
+[data-theme="dark"] .stat-icon.purple { background: #4c1d95; }
+[data-theme="dark"] .stat-icon.orange { background: #7c2d12; }
+.stat-value { font-size: 2rem; font-weight: 700; color: var(--text-primary); line-height: 1; }
+.stat-label { font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem; }
+.stat-change { font-size: 0.75rem; font-weight: 600; padding: 0.125rem 0.5rem; border-radius: 1rem; }
+.stat-change.positive { background: var(--success-muted); color: var(--success-default); }
+.stat-change.negative { background: var(--error-muted); color: var(--error-default); }
+
+/* Cards */
+.admin-card { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 1.5rem; }
+.admin-card-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); }
+.admin-card-title { font-size: 1.125rem; font-weight: 600; color: var(--text-primary); }
+.admin-card-body { padding: 1.5rem; }
+
+/* Quick Actions */
+.quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+.quick-action { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); text-decoration: none; color: var(--text-primary); transition: all 0.2s; }
+.quick-action:hover { border-color: var(--accent-primary); background: var(--accent-muted); transform: translateY(-2px); }
+.quick-action i { font-size: 1.5rem; color: var(--accent-primary); }
+.quick-action span { font-size: 0.875rem; font-weight: 500; }
+
+/* Status Indicators */
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 0.5rem; }
+.status-dot.online { background: #22c55e; }
+.status-dot.offline { background: #ef4444; }
+.status-dot.warning { background: #f59e0b; }
+
+/* Toggle */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: 0.75rem; }
+.toggle-row:last-child { margin-bottom: 0; }
+.toggle-info h4 { font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin: 0 0 0.125rem; }
+.toggle-info p { font-size: 0.8125rem; color: var(--text-secondary); margin: 0; }
+.toggle-switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+.toggle-input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--border-default); border-radius: 26px; transition: all 0.3s; }
+.toggle-slider::before { content: ''; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: all 0.3s; }
+.toggle-input:checked + .toggle-slider { background: var(--accent-primary); }
+.toggle-input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+/* User Table */
+.user-table { width: 100%; }
+.user-table th { text-align: left; padding: 0.75rem 1rem; font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-subtle); }
+.user-table td { padding: 0.875rem 1rem; border-bottom: 1px solid var(--border-subtle); }
+.user-table tr:last-child td { border-bottom: none; }
+.user-table tr:hover { background: var(--bg-secondary); }
+.user-info { display: flex; align-items: center; gap: 0.75rem; }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #fff; font-size: 0.875rem; }
+.user-name { font-weight: 600; color: var(--text-primary); }
+.user-email { font-size: 0.8125rem; color: var(--text-secondary); }
+.badge { padding: 0.25rem 0.5rem; font-size: 0.6875rem; font-weight: 600; border-radius: 1rem; text-transform: uppercase; }
+.badge-admin { background: #fef3c7; color: #d97706; }
+.badge-premium { background: #dbeafe; color: #2563eb; }
+.badge-verified { background: #d1fae5; color: #059669; }
+[data-theme="dark"] .badge-admin { background: #78350f; color: #fcd34d; }
+[data-theme="dark"] .badge-premium { background: #1e40af; color: #93c5fd; }
+[data-theme="dark"] .badge-verified { background: #065f46; color: #6ee7b7; }
+
+/* Log Table */
+.log-table { width: 100%; font-size: 0.875rem; }
+.log-table th { text-align: left; padding: 0.5rem 0.75rem; font-size: 0.6875rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; }
+.log-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--border-subtle); }
+.log-action { font-weight: 500; color: var(--text-primary); }
+.log-time { font-size: 0.75rem; color: var(--text-tertiary); }
+
+/* Maintenance Banner */
+.maintenance-banner { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; padding: 1rem 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+.maintenance-banner.hidden { display: none; }
+.maintenance-banner i { margin-right: 0.75rem; }
+.maintenance-banner button { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 0.5rem 1rem; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; }
+.maintenance-banner button:hover { background: rgba(255,255,255,0.3); }
+
+/* Toast */
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 10001; display: flex; flex-direction: column; gap: 0.75rem; }
+.toast { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem; background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); animation: toastIn 0.3s ease-out; min-width: 300px; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+.toast.success { border-left: 4px solid var(--success-default); }
+.toast.error { border-left: 4px solid var(--error-default); }
+.toast-message { flex: 1; font-size: 0.875rem; }
+
+/* Responsive */
+@media (max-width: 1024px) { .admin-layout { grid-template-columns: 1fr; } .admin-sidebar { position: static; } }
+@media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr 1fr; } .quick-actions { grid-template-columns: 1fr 1fr; } }
+
+.admin-nav{
+    padding: 0 !important;
+    height: 100% !important;
+    display: block !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="toast-container" id="toast-container"></div>
+
+<div class="admin-container">
+    <div class="admin-header">
+        <h1 class="admin-title">Admin Dashboard <span class="admin-badge">Admin</span></h1>
+    </div>
+
+    <!-- Maintenance Banner -->
+    <div class="maintenance-banner {{ 'hidden' if not settings.get('maintenance_mode', {}).get('value') }}" id="maintenance-banner">
+        <div><i class="fas fa-tools"></i> <strong>Maintenance Mode is ON</strong> - Only admins can access the site</div>
+        <button onclick="toggleMaintenance(false)">Disable</button>
+    </div>
+
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <div class="admin-sidebar">
+            <nav class="admin-nav">
+                <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-item active"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="{{ url_for('admin.users') }}" class="admin-nav-item"><i class="fas fa-users"></i> Users</a>
+                <a href="{{ url_for('admin.settings') }}" class="admin-nav-item"><i class="fas fa-cog"></i> Settings</a>
+                <a href="{{ url_for('admin.languages') }}" class="admin-nav-item"><i class="fas fa-language"></i> Languages</a>
+                <a href="{{ url_for('admin.logs') }}" class="admin-nav-item"><i class="fas fa-history"></i> Logs</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                        <span class="stat-change positive">+{{ stats.new_users_today }} today</span>
+                    </div>
+                    <div class="stat-value">{{ stats.total_users }}</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon purple"><i class="fas fa-crown"></i></div>
+                    </div>
+                    <div class="stat-value">{{ stats.premium_users }}</div>
+                    <div class="stat-label">Premium Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon green"><i class="fas fa-user-plus"></i></div>
+                        <span class="stat-change positive">+{{ stats.new_users_week }} week</span>
+                    </div>
+                    <div class="stat-value">{{ stats.new_users_today }}</div>
+                    <div class="stat-label">New Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon orange"><i class="fas fa-shield-alt"></i></div>
+                    </div>
+                    <div class="stat-value">{{ settings.get('maintenance_mode', {}).get('value') and 'ON' or 'OFF' }}</div>
+                    <div class="stat-label">Maintenance</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions & System Status -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">Quick Actions</h3>
+                    </div>
+                    <div class="admin-card-body">
+                        <div class="quick-actions">
+                            <a href="{{ url_for('admin.users') }}" class="quick-action"><i class="fas fa-user-plus"></i><span>Manage Users</span></a>
+                            <a href="{{ url_for('admin.settings') }}" class="quick-action"><i class="fas fa-cog"></i><span>Site Settings</span></a>
+                            <a href="{{ url_for('admin.languages') }}" class="quick-action"><i class="fas fa-language"></i><span>Languages</span></a>
+                            <a href="#" class="quick-action" onclick="toggleMaintenance(!{{ 'true' if settings.get('maintenance_mode', {}).get('value') else 'false' }})"><i class="fas fa-tools"></i><span>Toggle Maintenance</span></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">Authentication Providers</h3>
+                    </div>
+                    <div class="admin-card-body">
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4><i class="fab fa-github"></i> GitHub</h4>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input" id="enable-github" {{ 'checked' if settings.get('enable_github', {}).get('value', True) }} onchange="updateAuth('enable_github', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4><i class="fab fa-gitlab"></i> GitLab</h4>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input" id="enable-gitlab" {{ 'checked' if settings.get('enable_gitlab', {}).get('value', True) }} onchange="updateAuth('enable_gitlab', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4><i class="fab fa-bitbucket"></i> Bitbucket</h4>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input" id="enable-bitbucket" {{ 'checked' if settings.get('enable_bitbucket', {}).get('value', True) }} onchange="updateAuth('enable_bitbucket', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4><i class="fas fa-user-plus"></i> New Signups</h4>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input" id="enable-signup" {{ 'checked' if settings.get('enable_signup', {}).get('value', True) }} onchange="updateAuth('enable_signup', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Users -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h3 class="admin-card-title">Recent Users</h3>
+                    <a href="{{ url_for('admin.users') }}" style="color: var(--accent-primary); text-decoration: none; font-size: 0.875rem;">View All →</a>
+                </div>
+                <div class="admin-card-body" style="padding: 0;">
+                    <table class="user-table">
+                        <thead>
+                            <tr><th>User</th><th>Provider</th><th>Status</th><th>Joined</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar" style="background: {{ user.get_letter_avatar_color() }};">
+                                            {% if user.avatar_url %}<img src="{{ user.avatar_url }}" style="width:100%;height:100%;border-radius:50%;">{% else %}{{ user.username[0].upper() }}{% endif %}
+                                        </div>
+                                        <div><div class="user-name">{{ user.username }}</div><div class="user-email">{{ user.email or 'No email' }}</div></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if user.github_id %}<i class="fab fa-github" style="margin-right:0.25rem;"></i>{% endif %}
+                                    {% if user.gitlab_id %}<i class="fab fa-gitlab" style="color:#fc6d26;margin-right:0.25rem;"></i>{% endif %}
+                                    {% if user.bitbucket_id %}<i class="fab fa-bitbucket" style="color:#0052CC;"></i>{% endif %}
+                                </td>
+                                <td>
+                                    {% if user.is_admin %}<span class="badge badge-admin">Admin</span>{% endif %}
+                                    {% if user.is_premium %}<span class="badge badge-premium">Premium</span>{% endif %}
+                                    {% if user.is_verified %}<span class="badge badge-verified">Verified</span>{% endif %}
+                                </td>
+                                <td style="color:var(--text-secondary);font-size:0.8125rem;">{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Logs -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h3 class="admin-card-title">Recent Admin Activity</h3>
+                    <a href="{{ url_for('admin.logs') }}" style="color: var(--accent-primary); text-decoration: none; font-size: 0.875rem;">View All →</a>
+                </div>
+                <div class="admin-card-body" style="padding: 0;">
+                    <table class="log-table">
+                        <thead><tr><th>Action</th><th>Admin</th><th>Target</th><th>Time</th></tr></thead>
+                        <tbody>
+                            {% for log in recent_logs[:10] %}
+                            <tr>
+                                <td class="log-action">{{ log.action }}</td>
+                                <td>{{ log.admin.username if log.admin else 'System' }}</td>
+                                <td style="color:var(--text-secondary);">{{ log.target_type }}{% if log.target_id %}:{{ log.target_id }}{% endif %}</td>
+                                <td class="log-time">{{ log.created_at.strftime('%b %d, %H:%M') }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" style="text-align:center;color:var(--text-tertiary);padding:2rem;">No activity yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CSRF_TOKEN = '{{ csrf_token() }}';
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i><span class="toast-message">${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+async function apiCall(endpoint, method = 'POST', data = null) {
+    const options = { method, headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN } };
+    if (data) options.body = JSON.stringify(data);
+    const response = await fetch(endpoint, options);
+    return response.json();
+}
+
+async function toggleMaintenance(enabled) {
+    const result = await apiCall('/admin/api/settings/maintenance', 'POST', { enabled });
+    if (result.success) {
+        showToast(result.message);
+        document.getElementById('maintenance-banner').classList.toggle('hidden', !enabled);
+    } else {
+        showToast(result.error, 'error');
+    }
+}
+
+async function updateAuth(field, value) {
+    const result = await apiCall('/admin/api/settings/auth', 'POST', { [field]: value });
+    if (result.success) {
+        showToast(result.message);
+    } else {
+        showToast(result.error, 'error');
+        document.getElementById(field.replace('_', '-')).checked = !value;
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Site Settings - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-container { max-width: 1000px; margin: 0 auto; }
+.admin-header { margin-bottom: 2rem; }
+.back-link { color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.back-link:hover { color: var(--accent-primary); }
+.admin-title { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
+
+.settings-grid { display: grid; gap: 1.5rem; }
+.settings-card { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); overflow: hidden; }
+.settings-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 0.75rem; }
+.settings-card-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: 1.125rem; }
+.settings-card-icon.orange { background: #fed7aa; color: #ea580c; }
+.settings-card-icon.blue { background: #dbeafe; color: #2563eb; }
+.settings-card-icon.green { background: #d1fae5; color: #059669; }
+.settings-card-icon.purple { background: #e9d5ff; color: #7c3aed; }
+[data-theme="dark"] .settings-card-icon.orange { background: #7c2d12; }
+[data-theme="dark"] .settings-card-icon.blue { background: #1e40af; }
+[data-theme="dark"] .settings-card-icon.green { background: #065f46; }
+[data-theme="dark"] .settings-card-icon.purple { background: #4c1d95; }
+.settings-card-title { font-size: 1.125rem; font-weight: 600; color: var(--text-primary); }
+.settings-card-body { padding: 1.5rem; }
+
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: 0.75rem; }
+.toggle-row:last-child { margin-bottom: 0; }
+.toggle-info h4 { font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin: 0 0 0.125rem; }
+.toggle-info p { font-size: 0.8125rem; color: var(--text-secondary); margin: 0; }
+.toggle-switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+.toggle-input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--border-default); border-radius: 26px; transition: all 0.3s; }
+.toggle-slider::before { content: ''; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: all 0.3s; }
+.toggle-input:checked + .toggle-slider { background: var(--accent-primary); }
+.toggle-input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+.form-group { margin-bottom: 1.25rem; }
+.form-group:last-child { margin-bottom: 0; }
+.form-label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; }
+.form-help { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.375rem; }
+.form-control { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-default); border-radius: var(--radius-md); background: var(--bg-primary); color: var(--text-primary); font-size: 0.875rem; }
+.form-control:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-muted); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; font-size: 0.875rem; font-weight: 600; border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: var(--accent-primary); color: #fff; }
+.btn-primary:hover { background: var(--accent-emphasis); }
+.btn-secondary { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-default); }
+.btn-danger { background: var(--error-default); color: #fff; }
+
+.maintenance-alert { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; padding: 1.25rem 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+.maintenance-alert.hidden { display: none; }
+.maintenance-alert i { font-size: 1.5rem; margin-right: 1rem; }
+.maintenance-alert-text h4 { margin: 0 0 0.25rem; font-size: 1rem; }
+.maintenance-alert-text p { margin: 0; font-size: 0.875rem; opacity: 0.9; }
+.maintenance-alert button { background: rgba(255,255,255,0.2); border: none; padding: 0.625rem 1.25rem; border-radius: var(--radius-md); color: #fff; font-weight: 600; cursor: pointer; }
+.maintenance-alert button:hover { background: rgba(255,255,255,0.3); }
+
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 10001; }
+.toast { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); margin-bottom: 0.75rem; animation: toastIn 0.3s; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(100%); } }
+.toast.success { border-left: 4px solid var(--success-default); }
+.toast.error { border-left: 4px solid var(--error-default); }
+
+@media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="toast-container" id="toast-container"></div>
+
+<div class="admin-container">
+    <div class="admin-header">
+        <a href="{{ url_for('admin.dashboard') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <h1 class="admin-title"><i class="fas fa-cog"></i> Site Settings</h1>
+    </div>
+
+    <!-- Maintenance Alert -->
+    <div class="maintenance-alert {{ '' if settings.get('maintenance_mode', {}).get('value') else 'hidden' }}" id="maintenance-alert">
+        <div style="display: flex; align-items: center;">
+            <i class="fas fa-tools"></i>
+            <div class="maintenance-alert-text">
+                <h4>Maintenance Mode Active</h4>
+                <p>Only administrators can access the site</p>
+            </div>
+        </div>
+        <button onclick="toggleMaintenance(false)">Disable Now</button>
+    </div>
+
+    <div class="settings-grid">
+        <!-- Maintenance Mode -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-card-icon orange"><i class="fas fa-tools"></i></div>
+                <h3 class="settings-card-title">Maintenance Mode</h3>
+            </div>
+            <div class="settings-card-body">
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <h4>Enable Maintenance Mode</h4>
+                        <p>Block all non-admin users from accessing the site</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="maintenance-mode" 
+                            {{ 'checked' if settings.get('maintenance_mode', {}).get('value') }}
+                            onchange="toggleMaintenance(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="form-label">Maintenance Message</label>
+                    <textarea id="maintenance-message" class="form-control" rows="3" placeholder="Message to show visitors...">{{ settings.get('maintenance_message', {}).get('value', '') }}</textarea>
+                    <div class="form-help">This message will be displayed to users during maintenance</div>
+                </div>
+                <button class="btn btn-secondary" onclick="saveMaintenanceMessage()"><i class="fas fa-save"></i> Save Message</button>
+            </div>
+        </div>
+
+        <!-- Authentication -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-card-icon blue"><i class="fas fa-key"></i></div>
+                <h3 class="settings-card-title">Authentication</h3>
+            </div>
+            <div class="settings-card-body">
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <h4><i class="fab fa-github" style="margin-right: 0.5rem;"></i>GitHub Login</h4>
+                        <p>Allow users to sign in with GitHub</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="enable-github"
+                            {{ 'checked' if settings.get('enable_github', {}).get('value', True) }}
+                            onchange="updateSetting('enable_github', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <h4><i class="fab fa-gitlab" style="color: #fc6d26; margin-right: 0.5rem;"></i>GitLab Login</h4>
+                        <p>Allow users to sign in with GitLab</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="enable-gitlab"
+                            {{ 'checked' if settings.get('enable_gitlab', {}).get('value', True) }}
+                            onchange="updateSetting('enable_gitlab', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <h4><i class="fab fa-bitbucket" style="color: #0052CC; margin-right: 0.5rem;"></i>Bitbucket Login</h4>
+                        <p>Allow users to sign in with Bitbucket</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="enable-bitbucket"
+                            {{ 'checked' if settings.get('enable_bitbucket', {}).get('value', True) }}
+                            onchange="updateSetting('enable_bitbucket', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <h4><i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>New Signups</h4>
+                        <p>Allow new users to create accounts</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="enable-signup"
+                            {{ 'checked' if settings.get('enable_signup', {}).get('value', True) }}
+                            onchange="updateSetting('enable_signup', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-card-icon green"><i class="fas fa-puzzle-piece"></i></div>
+                <h3 class="settings-card-title">Features</h3>
+            </div>
+            <div class="settings-card-body">
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <h4>Public Profiles</h4>
+                        <p>Allow users to make their profiles public</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="enable-public-profiles"
+                            {{ 'checked' if settings.get('enable_public_profiles', {}).get('value', True) }}
+                            onchange="updateSetting('enable_public_profiles', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <h4>Premium Features</h4>
+                        <p>Enable premium subscription features</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="enable-premium"
+                            {{ 'checked' if settings.get('enable_premium', {}).get('value', True) }}
+                            onchange="updateSetting('enable_premium', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="form-label">Free Repository Limit</label>
+                    <input type="number" id="free-repo-limit" class="form-control" 
+                        value="{{ settings.get('free_repo_limit', {}).get('value', 10) }}" min="1" max="100">
+                    <div class="form-help">Maximum repositories for free users</div>
+                </div>
+                <button class="btn btn-secondary" onclick="saveFreeRepoLimit()"><i class="fas fa-save"></i> Save Limit</button>
+            </div>
+        </div>
+
+        <!-- Site Information -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-card-icon purple"><i class="fas fa-globe"></i></div>
+                <h3 class="settings-card-title">Site Information</h3>
+            </div>
+            <div class="settings-card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Site Name</label>
+                        <input type="text" id="site-name" class="form-control" 
+                            value="{{ settings.get('site_name', {}).get('value', 'CodeInsight') }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Email</label>
+                        <input type="email" id="contact-email" class="form-control" 
+                            value="{{ settings.get('contact_email', {}).get('value', '') }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Site Description</label>
+                    <textarea id="site-description" class="form-control" rows="2">{{ settings.get('site_description', {}).get('value', '') }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Default Language</label>
+                    <select id="default-language" class="form-control">
+                        <option value="en" {{ 'selected' if settings.get('default_language', {}).get('value', 'en') == 'en' }}>English</option>
+                        <option value="ar" {{ 'selected' if settings.get('default_language', {}).get('value', 'en') == 'ar' }}>العربية</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="saveSiteInfo()"><i class="fas fa-save"></i> Save Site Info</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CSRF_TOKEN = '{{ csrf_token() }}';
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+async function apiCall(endpoint, method = 'POST', data = null) {
+    const options = { method, headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN } };
+    if (data) options.body = JSON.stringify(data);
+    const response = await fetch(endpoint, options);
+    return response.json();
+}
+
+async function updateSetting(key, value) {
+    const result = await apiCall('/admin/api/settings', 'POST', { [key]: value });
+    if (result.success) showToast('Setting updated');
+    else showToast(result.error, 'error');
+}
+
+async function toggleMaintenance(enabled) {
+    const message = document.getElementById('maintenance-message').value;
+    const result = await apiCall('/admin/api/settings/maintenance', 'POST', { enabled, message });
+    if (result.success) {
+        showToast(result.message);
+        document.getElementById('maintenance-alert').classList.toggle('hidden', !enabled);
+        document.getElementById('maintenance-mode').checked = enabled;
+    } else {
+        showToast(result.error, 'error');
+    }
+}
+
+async function saveMaintenanceMessage() {
+    const message = document.getElementById('maintenance-message').value;
+    const result = await apiCall('/admin/api/settings', 'POST', { maintenance_message: message });
+    if (result.success) showToast('Message saved');
+    else showToast(result.error, 'error');
+}
+
+async function saveFreeRepoLimit() {
+    const limit = parseInt(document.getElementById('free-repo-limit').value);
+    const result = await apiCall('/admin/api/settings', 'POST', { free_repo_limit: limit });
+    if (result.success) showToast('Limit saved');
+    else showToast(result.error, 'error');
+}
+
+async function saveSiteInfo() {
+    const data = {
+        site_name: document.getElementById('site-name').value,
+        site_description: document.getElementById('site-description').value,
+        contact_email: document.getElementById('contact-email').value,
+        default_language: document.getElementById('default-language').value
+    };
+    const result = await apiCall('/admin/api/settings', 'POST', data);
+    if (result.success) showToast('Site information saved');
+    else showToast(result.error, 'error');
+}
+</script>
+{% endblock %}

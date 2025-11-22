@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Logs - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-container { max-width: 1200px; margin: 0 auto; }
+.admin-header { margin-bottom: 2rem; }
+.back-link { color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.back-link:hover { color: var(--accent-primary); }
+.admin-title { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
+
+.logs-card { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); overflow: hidden; }
+.logs-table { width: 100%; border-collapse: collapse; }
+.logs-table th { text-align: left; padding: 1rem; font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle); }
+.logs-table td { padding: 1rem; border-bottom: 1px solid var(--border-subtle); font-size: 0.875rem; }
+.logs-table tr:hover { background: var(--bg-secondary); }
+.logs-table tr:last-child td { border-bottom: none; }
+
+.log-action { font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+.log-action i { width: 20px; text-align: center; }
+.action-update { color: #2563eb; }
+.action-ban { color: #dc2626; }
+.action-create { color: #059669; }
+.action-toggle { color: #d97706; }
+
+.log-admin { display: flex; align-items: center; gap: 0.625rem; }
+.log-admin-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: #fff; }
+.log-admin-name { font-weight: 500; color: var(--text-primary); }
+
+.log-target { color: var(--text-secondary); font-family: monospace; font-size: 0.8125rem; background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); }
+.log-details { color: var(--text-secondary); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log-time { color: var(--text-tertiary); font-size: 0.8125rem; }
+.log-ip { color: var(--text-tertiary); font-family: monospace; font-size: 0.75rem; }
+
+/* Pagination */
+.pagination { display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 1.5rem; }
+.page-btn { padding: 0.5rem 0.875rem; border: 1px solid var(--border-default); background: var(--bg-primary); color: var(--text-primary); border-radius: var(--radius-md); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; text-decoration: none; }
+.page-btn:hover { background: var(--bg-secondary); }
+.page-btn.active { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+.page-info { color: var(--text-secondary); font-size: 0.875rem; margin: 0 1rem; }
+
+.empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-tertiary); }
+.empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <a href="{{ url_for('admin.dashboard') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <h1 class="admin-title"><i class="fas fa-history"></i> Admin Activity Logs</h1>
+    </div>
+
+    <div class="logs-card">
+        {% if logs.items %}
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Admin</th>
+                    <th>Target</th>
+                    <th>Details</th>
+                    <th>IP Address</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs.items %}
+                <tr>
+                    <td>
+                        <div class="log-action 
+                            {% if 'update' in log.action %}action-update
+                            {% elif 'ban' in log.action %}action-ban
+                            {% elif 'create' in log.action %}action-create
+                            {% elif 'toggle' in log.action %}action-toggle
+                            {% endif %}">
+                            <i class="fas 
+                                {% if 'update' in log.action %}fa-edit
+                                {% elif 'ban' in log.action %}fa-ban
+                                {% elif 'unban' in log.action %}fa-undo
+                                {% elif 'create' in log.action %}fa-plus
+                                {% elif 'toggle' in log.action %}fa-toggle-on
+                                {% elif 'impersonate' in log.action %}fa-user-secret
+                                {% elif 'bulk' in log.action %}fa-list
+                                {% else %}fa-cog
+                                {% endif %}"></i>
+                            {{ log.action.replace('_', ' ').title() }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if log.admin %}
+                        <div class="log-admin">
+                            <div class="log-admin-avatar" style="background: {{ log.admin.get_letter_avatar_color() }};">
+                                {{ log.admin.username[0].upper() }}
+                            </div>
+                            <span class="log-admin-name">{{ log.admin.username }}</span>
+                        </div>
+                        {% else %}
+                        <span style="color: var(--text-tertiary);">System</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.target_type %}
+                        <span class="log-target">{{ log.target_type }}{% if log.target_id %}:{{ log.target_id }}{% endif %}</span>
+                        {% else %}
+                        <span style="color: var(--text-tertiary);">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="log-details" title="{{ log.details or '' }}">{{ log.details or '-' }}</span>
+                    </td>
+                    <td>
+                        <span class="log-ip">{{ log.ip_address or '-' }}</span>
+                    </td>
+                    <td>
+                        <span class="log-time">{{ log.created_at.strftime('%b %d, %Y %H:%M') }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if logs.pages > 1 %}
+        <div class="pagination">
+            {% if logs.has_prev %}
+            <a href="?page={{ logs.prev_num }}" class="page-btn"><i class="fas fa-chevron-left"></i></a>
+            {% endif %}
+            
+            {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                <a href="?page={{ page_num }}" class="page-btn {{ 'active' if page_num == logs.page }}">{{ page_num }}</a>
+                {% else %}
+                <span class="page-info">...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if logs.has_next %}
+            <a href="?page={{ logs.next_num }}" class="page-btn"><i class="fas fa-chevron-right"></i></a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-history"></i>
+            <p>No admin activity logged yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
